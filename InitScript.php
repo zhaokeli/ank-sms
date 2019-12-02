@@ -1,5 +1,5 @@
 <?php
-namespace mokuyu\anksms;
+namespace ank\sms;
 
 defined('SCRIPT_ENTRY') or die();
 
