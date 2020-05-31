@@ -1,4 +1,5 @@
 <?php
+
 namespace ank;
 
 ini_set('display_errors', 'on');
@@ -10,6 +11,7 @@ use Aliyun\Api\Sms\Request\V20170525\SendSmsRequest;
 use Aliyun\Core\Config;
 use Aliyun\Core\DefaultAcsClient;
 use Aliyun\Core\Profile\DefaultProfile;
+use Aliyun\Core\Exception\ServerException;
 
 // 加载区域结点配置
 Config::load();
@@ -22,7 +24,6 @@ class Sms
     // private $templateCode    = ''; //短信模板编号
     /**
      * 构造器
-     *
      * @param string $accessKeyId     必填，AccessKeyId
      * @param string $accessKeySecret 必填，AccessKeySecret
      */
@@ -53,12 +54,11 @@ class Sms
 
     /**
      * 查询短信发送情况范例
-     *
-     * @param  string     $phoneNumbers 必填, 短信接收号码 (e.g. 12345678901)
-     * @param  string     $sendDate     必填，短信发送日期，格式Ymd，支持近30天记录查询 (e.g. 20170710)
-     * @param  int        $pageSize     必填，分页大小
-     * @param  int        $currentPage  必填，当前页码
-     * @param  string     $bizId        选填，短信发送流水号 (e.g. abc123)
+     * @param string $phoneNumbers 必填, 短信接收号码 (e.g. 12345678901)
+     * @param string $sendDate     必填，短信发送日期，格式Ymd，支持近30天记录查询 (e.g. 20170710)
+     * @param int    $pageSize     必填，分页大小
+     * @param int    $currentPage  必填，当前页码
+     * @param string $bizId        选填，短信发送流水号 (e.g. abc123)
      * @return stdClass
      */
     public function queryDetails($phoneNumbers, $sendDate, $pageSize = 10, $currentPage = 1, $bizId = null)
@@ -93,7 +93,6 @@ class Sms
 
     /**
      * 发送短信范例
-     *
      * 必填, 短信签名，应严格"签名名称"填写，参考：<a href="https://dysms.console.aliyun.com/dysms.htm#/sign">短信签名页</a>
      * </p>
      * 必填, 短信模板Code，应严格按"模板CODE"填写, 参考：<a href="https://dysms.console.aliyun.com/dysms.htm#/template">短信模板页</a>
@@ -101,11 +100,11 @@ class Sms
      * </p>
      * 选填, 假如模板中存在变量需要替换则为必填项 (e.g. Array("code"=>"12345", "product"=>"阿里通信"))
      * </p>
-     * @param  string      $signName      <p>
-     * @param  string      $templateCode  <p>
-     * @param  string      $phoneNumbers  必填, 短信接收号码 (e.g. 12345678901)
-     * @param  array|null  $templateParam <p>
-     * @param  string|null $outId         [optional] 选填, 发送短信流水号 (e.g. 1234)
+     * @param string      $signName      <p>
+     * @param string      $templateCode  <p>
+     * @param string      $phoneNumbers  必填, 短信接收号码 (e.g. 12345678901)
+     * @param array|null  $templateParam <p>
+     * @param string|null $outId         [optional] 选填, 发送短信流水号 (e.g. 1234)
      * @return stdClass
      */
     public function sendSms($signName, $templateCode, $phoneNumbers, $templateParam = null, $outId = null)
@@ -132,15 +131,17 @@ class Sms
         if ($outId) {
             $request->setOutId($outId);
         }
+        try {
+            // 发起访问请求
+            $acsResponse = $this->acsClient->getAcsResponse($request);
 
-        // 发起访问请求
-        $acsResponse = $this->acsClient->getAcsResponse($request);
-
-        // 打印请求结果
-        // var_dump($acsResponse);
-
-        return $acsResponse;
-
+            // 打印请求结果
+            // var_dump($acsResponse);
+            return $acsResponse->Code === 'OK';
+            //            return $acsResponse;
+        } catch (ServerException $e) {
+            return $e->getErrorMessage();
+        }
     }
 }
 // $demo = new Sms(
