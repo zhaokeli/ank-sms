@@ -1,7 +1,8 @@
 <?php
+
 namespace ank\sms;
 
-class InitScript extends \utils\admin\InitScript
+class InitScript extends \app\utils\admin\InitScript
 {
     public function install(): bool
     {
